@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusTube - Course Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <h1>📚 FocusTube</h1>
+        <div class="header-actions">
+            <button id="settingsBtn" class="btn-secondary">⚙️ Settings</button>
+            <button id="addCourseBtn" class="btn-primary">+ Add Course</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div id="courseList" class="course-list">
+                <p class="empty-state">No courses yet. Add YouTube videos or playlists to get started.</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div id="playerContainer" class="player-container">
+                <div class="welcome-screen">
+                    <h2>Welcome to FocusTube</h2>
+                    <p>Your distraction-free YouTube course player</p>
+                    <p>Click "+ Add Course" to paste YouTube video or playlist URLs</p>
+                </div>
+            </div>
+
+            <!-- Video Info -->
+            <div id="videoInfo" class="video-info" style="display: none;">
+                <h2 id="currentLessonTitle">Lesson Title</h2>
+                <div class="video-controls">
+                    <button id="prevBtn" class="btn-secondary">← Previous</button>
+                    <button id="markCompleteBtn" class="btn-secondary">✓ Mark Complete</button>
+                    <button id="nextBtn" class="btn-secondary">Next →</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Course Modal -->
+    <div id="addCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Course or Videos</h2>
+                <button id="closeModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label for="courseTitle">Course Title (Optional):</label>
+                <input type="text" id="courseTitle" placeholder="e.g., JavaScript Fundamentals">
+                
+                <label for="urlInput">Paste YouTube URLs:</label>
+                <textarea id="urlInput" rows="8" placeholder="Paste YouTube video or playlist URLs here (one per line)&#10;&#10;Examples:&#10;https://www.youtube.com/watch?v=VIDEO_ID&#10;https://www.youtube.com/playlist?list=PLAYLIST_ID&#10;https://youtu.be/VIDEO_ID"></textarea>
+                
+                <div class="modal-footer">
+                    <button id="cancelBtn" class="btn-secondary">Cancel</button>
+                    <button id="submitUrlsBtn" class="btn-primary">Add to Library</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Settings</h2>
+                <button id="closeSettingsModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label for="apiKeyInput">YouTube Data API Key:</label>
+                <input type="password" id="apiKeyInput" placeholder="Enter your YouTube Data API v3 key">
+                <p style="font-size: 12px; color: #888; margin-top: 5px;">
+                    Required for playlist support. Get your free API key from 
+                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #ff6b6b;">Google Cloud Console</a>
+                </p>
+                
+                <div class="modal-footer">
+                    <button id="cancelSettingsBtn" class="btn-secondary">Cancel</button>
+                    <button id="saveSettingsBtn" class="btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="script.js"></script>
+</body>
+</html>
