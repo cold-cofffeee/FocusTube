@@ -120,31 +120,39 @@ window.onYouTubeIframeAPIReady = function() {
 function createPlayer(videoId) {
     const container = document.getElementById('playerContainer');
     
-    // Clear welcome screen
-    container.innerHTML = '<div id="player"></div>';
-
-    if (player && typeof player.loadVideoById === 'function') {
-        player.loadVideoById(videoId);
-    } else {
-        player = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            videoId: videoId,
-            playerVars: {
-                'playsinline': 1,
-                'rel': 0, // Disable related videos
-                'modestbranding': 1, // Minimal YouTube branding
-                'fs': 1, // Fullscreen button
-                'iv_load_policy': 3, // Disable annotations
-                'disablekb': 0, // Enable keyboard controls
-                'origin': window.location.origin || window.location.protocol + '//' + window.location.host
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
+    // If player already exists and is ready, just load the new video
+    if (player && typeof player.loadVideoById === 'function' && typeof player.getPlayerState === 'function') {
+        try {
+            player.loadVideoById(videoId);
+            return;
+        } catch (e) {
+            console.error('Error loading video:', e);
+            // If error, recreate player
+            player = null;
+        }
     }
+    
+    // Create new player
+    container.innerHTML = '<div id="player"></div>';
+    
+    player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+            'playsinline': 1,
+            'rel': 0, // Disable related videos
+            'modestbranding': 1, // Minimal YouTube branding
+            'fs': 1, // Fullscreen button
+            'iv_load_policy': 3, // Disable annotations
+            'disablekb': 0, // Enable keyboard controls
+            'origin': window.location.origin || window.location.protocol + '//' + window.location.host
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
 }
 
 // Player ready event
