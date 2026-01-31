@@ -625,9 +625,22 @@ function renderCourses() {
         return;
     }
 
+    // Store current visibility states before re-rendering
+    const visibilityStates = {};
+    courses.forEach(course => {
+        const lessonList = document.getElementById(`lessons-${course.id}`);
+        if (lessonList) {
+            visibilityStates[course.id] = lessonList.style.display !== 'none';
+        } else {
+            // Default: show only the active course, hide others
+            visibilityStates[course.id] = course.id === currentCourseId;
+        }
+    });
+
     container.innerHTML = courses.map(course => {
         const completedCount = course.lessons.filter(l => l.completed).length;
         const progress = `${completedCount}/${course.lessons.length}`;
+        const isVisible = visibilityStates[course.id];
 
         return `
             <div class="course-item">
@@ -638,7 +651,7 @@ function renderCourses() {
                     </div>
                     <button class="delete-course-btn" data-delete-course="${course.id}" title="Delete course">×</button>
                 </div>
-                <div class="lesson-list" id="lessons-${course.id}">
+                <div class="lesson-list" id="lessons-${course.id}" style="display: ${isVisible ? 'block' : 'none'};">
                     ${course.lessons.map((lesson, index) => {
                         const isActive = currentCourseId === course.id && currentLessonId === lesson.id;
                         const isCompleted = lesson.completed;
