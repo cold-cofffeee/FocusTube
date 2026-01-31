@@ -300,7 +300,9 @@ async function addCourse(title, urls) {
                     id: videoId,
                     title: `Lesson ${lessons.length + 1}`,
                     completed: false,
-                    lastPosition: 0
+                    skipped: false,
+                    lastPosition: 0,
+                    notes: []
                 });
             }
         } else if (type === 'playlist') {
@@ -330,7 +332,9 @@ async function addCourse(title, urls) {
                                 id: videoId,
                                 title: `Lesson ${lessons.length + 1}`,
                                 completed: false,
-                                lastPosition: 0
+                                skipped: false,
+                                lastPosition: 0,
+                                notes: []
                             });
                         }
                     }
@@ -456,10 +460,122 @@ function playPreviousLesson() {
 function markCurrentComplete() {
     if (currentCourseId && currentLessonId) {
         Storage.updateLesson(currentCourseId, currentLessonId, {
-            completed: true
+            completed: true,
+            skipped: false
         });
         renderCourses();
     }
+}
+
+function markCurrentSkipped() {
+    if (currentCourseId && currentLessonId) {
+        Storage.updateLesson(currentCourseId, currentLessonId, {
+            skipped: true,
+            completed: false
+        });
+        renderCourses();
+    }
+}
+
+// ==================== NOTES MANAGEMENT ====================
+function addNote() {
+    if (!currentCourseId || !currentLessonId || !player) return;
+
+    const noteText = document.getElementById('noteInput').value.trim();
+    if (!noteText) {
+        alert('Please enter a note');
+        return;
+    }
+
+    const currentTime = player.getCurrentTime ? player.getCurrentTime() : 0;
+    const lesson = Storage.getLesson(currentCourseId, currentLessonId);
+    
+    if (lesson) {
+        const notes = lesson.notes || [];
+        notes.push({
+            id: generateId(),
+            text: noteText,
+            timestamp: currentTime,
+            createdAt: Date.now()
+        });
+
+        Storage.updateLesson(currentCourseId, currentLessonId, { notes });
+        document.getElementById('noteInput').value = '';
+        renderNotes();
+    }
+}
+
+function deleteNote(noteId) {
+    if (!currentCourseId || !currentLessonId) return;
+
+    const lesson = Storage.getLesson(currentCourseId, currentLessonId);
+    if (lesson) {
+        const notes = (lesson.notes || []).filter(n => n.id !== noteId);
+        Storage.updateLesson(currentCourseId, currentLessonId, { notes });
+        renderNotes();
+    }
+}
+
+function seekToTimestamp(timestamp) {
+    if (player && player.seekTo) {
+        player.seekTo(timestamp, true);
+        if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+            player.playVideo();
+        }
+    }
+}
+
+function formatTimestamp(seconds) {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (hrs > 0) {
+        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function renderNotes() {
+    const notesContainer = document.getElementById('notesList');
+    
+    if (!currentCourseId || !currentLessonId) {
+        notesContainer.innerHTML = '<p class="empty-notes">No lesson selected</p>';
+        return;
+    }
+
+    const lesson = Storage.getLesson(currentCourseId, currentLessonId);
+    const notes = lesson?.notes || [];
+
+    if (notes.length === 0) {
+        notesContainer.innerHTML = '<p class="empty-notes">No notes yet. Add notes while watching!</p>';
+        return;
+    }
+
+    notesContainer.innerHTML = notes.map(note => `
+        <div class="note-item">
+            <div class="note-header">
+                <button class="note-timestamp" data-timestamp="${note.timestamp}" title="Jump to this time">
+                    ⏱️ ${formatTimestamp(note.timestamp)}
+                </button>
+                <button class="delete-note-btn" data-note-id="${note.id}" title="Delete note">×</button>
+            </div>
+            <div class="note-text">${escapeHtml(note.text)}</div>
+        </div>
+    `).join('');
+    
+    // Add event listeners to note buttons
+    document.querySelectorAll('.note-timestamp').forEach(btn => {
+        btn.addEventListener('click', function() {
+            seekToTimestamp(parseFloat(this.dataset.timestamp));
+        });
+    });
+    
+    document.querySelectorAll('.delete-note-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            deleteNote(this.dataset.noteId);
+        });
+    });
 }
 
 // ==================== UI RENDERING ====================
@@ -478,24 +594,26 @@ function renderCourses() {
 
         return `
             <div class="course-item">
-                <div class="course-header" onclick="toggleCourse('${course.id}')">
+                <div class="course-header" data-course-id="${course.id}">
                     <div>
                         <div class="course-title">${escapeHtml(course.title)}</div>
                         <div class="course-progress">${progress} lessons completed</div>
                     </div>
-                    <button class="delete-course-btn" onclick="event.stopPropagation(); deleteCourse('${course.id}')" title="Delete course">×</button>
+                    <button class="delete-course-btn" data-delete-course="${course.id}" title="Delete course">×</button>
                 </div>
                 <div class="lesson-list" id="lessons-${course.id}">
                     ${course.lessons.map((lesson, index) => {
                         const isActive = currentCourseId === course.id && currentLessonId === lesson.id;
                         const isCompleted = lesson.completed;
+                        const isSkipped = lesson.skipped;
                         
                         return `
-                            <div class="lesson-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" 
-                                 onclick="playLesson('${course.id}', '${lesson.id}')">
+                            <div class="lesson-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isSkipped ? 'skipped' : ''}" 
+                                 data-course-id="${course.id}" data-lesson-id="${lesson.id}">
                                 <div class="lesson-number">${index + 1}</div>
                                 <div class="lesson-title">${escapeHtml(lesson.title)}</div>
                                 ${isCompleted ? '<span class="lesson-completed">✓</span>' : ''}
+                                ${isSkipped ? '<span class="lesson-skipped">⊘</span>' : ''}
                             </div>
                         `;
                     }).join('')}
@@ -503,6 +621,30 @@ function renderCourses() {
             </div>
         `;
     }).join('');
+    
+    // Add event listeners for course headers
+    document.querySelectorAll('.course-header').forEach(header => {
+        header.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('delete-course-btn')) {
+                toggleCourse(this.dataset.courseId);
+            }
+        });
+    });
+    
+    // Add event listeners for delete buttons
+    document.querySelectorAll('.delete-course-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteCourse(this.dataset.deleteCourse);
+        });
+    });
+    
+    // Add event listeners for lesson items
+    document.querySelectorAll('.lesson-item').forEach(item => {
+        item.addEventListener('click', function() {
+            playLesson(this.dataset.courseId, this.dataset.lessonId);
+        });
+    });
 }
 
 function toggleCourse(courseId) {
@@ -514,12 +656,14 @@ function toggleCourse(courseId) {
 
 function updateVideoInfo() {
     const videoInfo = document.getElementById('videoInfo');
+    const notesSection = document.getElementById('notesSection');
     const titleEl = document.getElementById('currentLessonTitle');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
 
     if (!currentCourseId || !currentLessonId) {
         videoInfo.style.display = 'none';
+        notesSection.style.display = 'none';
         return;
     }
 
@@ -528,6 +672,7 @@ function updateVideoInfo() {
     
     if (!course) {
         videoInfo.style.display = 'none';
+        notesSection.style.display = 'none';
         return;
     }
 
@@ -536,10 +681,14 @@ function updateVideoInfo() {
 
     titleEl.textContent = currentLesson.title;
     videoInfo.style.display = 'block';
+    notesSection.style.display = 'block';
 
     // Enable/disable prev/next buttons
     prevBtn.disabled = currentIndex === 0;
     nextBtn.disabled = currentIndex === course.lessons.length - 1;
+    
+    // Render notes for current lesson
+    renderNotes();
 }
 
 function escapeHtml(text) {
@@ -644,6 +793,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('prevBtn').addEventListener('click', playPreviousLesson);
     document.getElementById('nextBtn').addEventListener('click', playNextLesson);
     document.getElementById('markCompleteBtn').addEventListener('click', markCurrentComplete);
+    document.getElementById('markSkippedBtn').addEventListener('click', markCurrentSkipped);
+    
+    // Notes controls
+    document.getElementById('addNoteBtn').addEventListener('click', addNote);
+    document.getElementById('noteInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            addNote();
+        }
+    });
 
     // Close modals on outside click
     document.getElementById('addCourseModal').addEventListener('click', (e) => {

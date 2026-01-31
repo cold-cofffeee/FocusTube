@@ -40,8 +40,23 @@
                 <h2 id="currentLessonTitle">Lesson Title</h2>
                 <div class="video-controls">
                     <button id="prevBtn" class="btn-secondary">← Previous</button>
-                    <button id="markCompleteBtn" class="btn-secondary">✓ Mark Complete</button>
+                    <button id="markCompleteBtn" class="btn-secondary">✓ Complete</button>
+                    <button id="markSkippedBtn" class="btn-secondary">⊘ Skip</button>
                     <button id="nextBtn" class="btn-secondary">Next →</button>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div id="notesSection" class="notes-section" style="display: none;">
+                <div class="notes-header">
+                    <h3>📝 Notes</h3>
+                </div>
+                <div class="notes-input">
+                    <textarea id="noteInput" rows="2" placeholder="Take a note... (Ctrl+Enter to save)"></textarea>
+                    <button id="addNoteBtn" class="btn-primary">Add Note</button>
+                </div>
+                <div id="notesList" class="notes-list">
+                    <p class="empty-notes">No notes yet. Add notes while watching!</p>
                 </div>
             </div>
         </main>
