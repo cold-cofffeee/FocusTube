@@ -140,12 +140,18 @@ function createPlayer(videoId) {
         width: '100%',
         videoId: videoId,
         playerVars: {
+            'autoplay': 0, // Don't auto-play
             'playsinline': 1,
-            'rel': 0, // Disable related videos
+            'rel': 0, // Disable related videos at the end
             'modestbranding': 1, // Minimal YouTube branding
             'fs': 1, // Fullscreen button
             'iv_load_policy': 3, // Disable annotations
             'disablekb': 0, // Enable keyboard controls
+            'controls': 1, // Show controls
+            'showinfo': 0, // Hide video title and uploader
+            'autohide': 1, // Auto-hide controls
+            'cc_load_policy': 0, // Don't show captions by default
+            'color': 'white', // Use white progress bar
             'origin': window.location.origin || window.location.protocol + '//' + window.location.host
         },
         events: {
@@ -189,10 +195,18 @@ function handleVideoEnd() {
         // Refresh UI
         renderCourses();
 
-        // Auto-advance to next lesson
-        setTimeout(() => {
-            playNextLesson();
-        }, 1000);
+        // Show completion message - removed auto-advance
+        const courses = Storage.getCourses();
+        const course = courses.find(c => c.id === currentCourseId);
+        if (course) {
+            const currentIndex = course.lessons.findIndex(l => l.id === currentLessonId);
+            if (currentIndex < course.lessons.length - 1) {
+                // Don't auto-advance, let user manually go to next
+                console.log('Lesson completed! Click Next to continue.');
+            } else {
+                console.log('Course completed! 🎉');
+            }
+        }
     }
 }
 
