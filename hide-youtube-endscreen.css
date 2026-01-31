@@ -1,0 +1,26 @@
+/* Additional CSS to hide YouTube end screens and suggestions */
+/* This uses aggressive selectors to hide YouTube's overlays */
+
+.ytp-ce-element,
+.ytp-ce-covering-overlay,
+.ytp-ce-element-show,
+.ytp-ce-covering-image,
+.ytp-pause-overlay,
+.ytp-scroll-min,
+.ytp-scroll-max,
+.ytp-show-cards-title,
+.ytp-cards-teaser,
+.ytp-endscreen-content,
+.ytp-endscreen-previous,
+.ytp-endscreen-next {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* Hide info cards */
+.ytp-cards-button,
+.ytp-cards-teaser {
+    display: none !important;
+}

@@ -181,6 +181,12 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
         handleVideoEnd();
     }
+    
+    // Hide end screen when video ends by covering it
+    if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+        // YouTube still shows end screens even with rel=0
+        // We'll use CSS to cover them
+    }
 }
 
 // Handle video end - mark as complete and advance
@@ -215,9 +221,18 @@ function startProgressSaving() {
     if (saveInterval) clearInterval(saveInterval);
     
     saveInterval = setInterval(() => {
-        if (player && player.getCurrentTime && currentCourseId && currentLessonId) {
+        if (player && player.getCurrentTime && player.getDuration && currentCourseId && currentLessonId) {
             try {
                 const currentTime = player.getCurrentTime();
+                const duration = player.getDuration();
+                
+                // Stop video 2 seconds before end to prevent YouTube end screens
+                if (duration - currentTime < 2 && duration - currentTime > 0) {
+                    player.pauseVideo();
+                    handleVideoEnd();
+                    return;
+                }
+                
                 if (currentTime > 0) {
                     Storage.updateLesson(currentCourseId, currentLessonId, {
                         lastPosition: currentTime
@@ -227,7 +242,7 @@ function startProgressSaving() {
                 console.error('Error saving progress:', e);
             }
         }
-    }, 5000); // Save every 5 seconds
+    }, 1000); // Check every second
 }
 
 // Stop saving progress
