@@ -123,7 +123,7 @@ function createPlayer(videoId) {
     // Clear welcome screen
     container.innerHTML = '<div id="player"></div>';
 
-    if (player) {
+    if (player && typeof player.loadVideoById === 'function') {
         player.loadVideoById(videoId);
     } else {
         player = new YT.Player('player', {
@@ -137,7 +137,7 @@ function createPlayer(videoId) {
                 'fs': 1, // Fullscreen button
                 'iv_load_policy': 3, // Disable annotations
                 'disablekb': 0, // Enable keyboard controls
-                'origin': window.location.origin
+                'origin': window.location.origin || window.location.protocol + '//' + window.location.host
             },
             events: {
                 'onReady': onPlayerReady,

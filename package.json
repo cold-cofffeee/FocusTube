@@ -1,0 +1,14 @@
+{
+  "name": "focustube",
+  "version": "1.0.0",
+  "description": "PotPlayer-style YouTube course player",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["youtube", "course", "player", "learning"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
