@@ -74,6 +74,24 @@ const Storage = {
 
     setYouTubeApiKey(key) {
         localStorage.setItem(this.KEYS.YOUTUBE_API_KEY, key);
+    },
+
+    // Get total study time
+    getTotalStudyTime() {
+        const courses = this.getCourses();
+        let totalSeconds = 0;
+        
+        courses.forEach(course => {
+            course.lessons.forEach(lesson => {
+                // Count completed lessons' last position as study time
+                // For incomplete lessons, use their last position
+                if (lesson.completed || lesson.lastPosition > 0) {
+                    totalSeconds += lesson.lastPosition || 0;
+                }
+            });
+        });
+        
+        return totalSeconds;
     }
 };
 
@@ -200,6 +218,7 @@ function handleVideoEnd() {
 
         // Refresh UI
         renderCourses();
+        updateDashboard();
 
         // Show completion message - removed auto-advance
         const courses = Storage.getCourses();
@@ -408,6 +427,9 @@ async function addCourse(title, urls) {
 
     // Auto-play first lesson of new course
     playLesson(course.id, lessons[0].id);
+    
+    // Update dashboard
+    updateDashboard();
 
     return true;
 }
@@ -435,6 +457,7 @@ function deleteCourse(courseId) {
             `;
             
             document.getElementById('videoInfo').style.display = 'none';
+        updateDashboard();
         }
         
         renderCourses();
@@ -501,6 +524,7 @@ function markCurrentComplete() {
             skipped: false
         });
         renderCourses();
+        updateDashboard();
     }
 }
 
@@ -511,6 +535,7 @@ function markCurrentSkipped() {
             completed: false
         });
         renderCourses();
+        updateDashboard();
     }
 }
 
@@ -792,6 +817,45 @@ function restoreSession() {
         // Restore last played lesson
         playLesson(courseId, lessonId);
     }
+    
+    // Update dashboard
+    updateDashboard();
+}
+
+// ==================== DASHBOARD ====================
+function updateDashboard() {
+    const courses = Storage.getCourses();
+    
+    if (courses.length === 0) {
+        document.getElementById('totalProgressPercent').textContent = '0%';
+        document.getElementById('lessonsCompleted').textContent = '0/0';
+        document.getElementById('lessonsRemaining').textContent = '0';
+        document.getElementById('totalWatchTime').textContent = '0h 0m';
+        return;
+    }
+    
+    // Calculate totals
+    let totalLessons = 0;
+    let completedLessons = 0;
+    
+    courses.forEach(course => {
+        totalLessons += course.lessons.length;
+        completedLessons += course.lessons.filter(l => l.completed).length;
+    });
+    
+    const remainingLessons = totalLessons - completedLessons;
+    const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+    
+    // Get total study time
+    const totalSeconds = Storage.getTotalStudyTime();
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    // Update dashboard
+    document.getElementById('totalProgressPercent').textContent = `${progressPercent}%`;
+    document.getElementById('lessonsCompleted').textContent = `${completedLessons}/${totalLessons}`;
+    document.getElementById('lessonsRemaining').textContent = remainingLessons;
+    document.getElementById('totalWatchTime').textContent = `${hours}h ${minutes}m`;
 }
 
 // ==================== SETTINGS MANAGEMENT ====================

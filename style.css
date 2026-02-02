@@ -35,6 +35,59 @@ body {
     align-items: center;
 }
 
+/* ==================== PROGRESS DASHBOARD ==================== */
+.progress-dashboard {
+    background: #1a1a1a;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #2a2a2a;
+    flex-wrap: wrap;
+}
+
+.dashboard-stat {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 20px;
+    background: #242424;
+    border-radius: 8px;
+    flex: 1;
+    min-width: 200px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.dashboard-stat:hover {
+    transform: translateY(-2px);
+    background: #2a2a2a;
+}
+
+.stat-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff6b6b;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* ==================== BUTTONS ==================== */
 .btn-primary {
     background: #ff6b6b;
@@ -75,7 +128,7 @@ body {
 /* ==================== MAIN CONTAINER ==================== */
 .container {
     display: flex;
-    height: calc(100vh - 61px);
+    height: calc(100vh - 61px - 97px); /* Header + Dashboard */
 }
 
 /* ==================== SIDEBAR ==================== */
